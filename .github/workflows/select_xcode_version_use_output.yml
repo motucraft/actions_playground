@@ -1,0 +1,51 @@
+name: select_xcode_version_use_output.yml
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "デプロイ先環境（development, productionなど）"
+        required: true
+        default: "development"
+        type: environment
+
+env:
+  ENV: ${{ vars.ENV }}
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set environment file based on GitHub Variables
+        id: set-env-file
+        run: |
+          ENV_FILE="./flavor/${{ env.ENV }}.json"
+          echo "Setting environment file to: $ENV_FILE"
+          echo "ENV_FILE=$ENV_FILE" >> $GITHUB_OUTPUT
+
+      - name: Show environment file content
+        run: cat ${{ steps.set-env-file.outputs.ENV_FILE }}
+
+      - name: Extract Xcode version from JSON
+        id: extract-xcode-version
+        run: |
+          XCODE_VERSION=$(jq -r '.XCODE_VERSION' ${{ steps.set-env-file.outputs.ENV_FILE }})
+          echo "Extracted Xcode version: $XCODE_VERSION"
+          echo "XCODE_VERSION=$XCODE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: List Xcode installations
+        run: ls -1 /Applications | grep "Xcode"
+
+      - name: Show current version of Xcode
+        run: xcodebuild -version
+
+      - name: Set up Xcode version
+        run: |
+          echo "Setting Xcode version to: ${{ steps.extract-xcode-version.outputs.XCODE_VERSION }}"
+          sudo xcode-select -s /Applications/Xcode_${{ steps.extract-xcode-version.outputs.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Show selected version of Xcode
+        run: xcodebuild -version
