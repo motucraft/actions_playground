@@ -35,8 +35,9 @@ jobs:
           echo "Extracted Xcode version: $XCODE_VERSION"
 
           # Xcodeバージョンを設定
-          echo "Set Xcode version to: $XCODE_VERSION"
+          echo "sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
           sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer
 
           # 設定されたXcodeバージョンを確認
+          echo "xcodebuild -version"
           xcodebuild -version
