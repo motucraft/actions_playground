@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set Xcode version, verify, and list installations
+      - name: Setup Xcode version
         run: |
           set -e
           
