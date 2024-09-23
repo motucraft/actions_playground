@@ -1,0 +1,42 @@
+name: select_xcode_version_one_step.yml
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "デプロイ先環境（development, productionなど）"
+        required: true
+        default: "development"
+        type: environment
+
+env:
+  ENV: ${{ vars.ENV }}
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Xcode version, verify, and list installations
+        run: |
+          set -e
+          
+          # Xcodeのインストールリストを確認
+          echo "Available Xcode installations:"
+          ls -1 /Applications | grep "Xcode"
+
+          ENV_FILE="./flavor/${{ env.ENV }}.json"
+          echo "Using environment file: $ENV_FILE"
+          
+          # JSONからXCODE_VERSIONを取得
+          XCODE_VERSION=$(jq -r '.XCODE_VERSION' $ENV_FILE)
+          echo "Extracted Xcode version: $XCODE_VERSION"
+
+          # Xcodeバージョンを設定
+          echo "Set Xcode version to: $XCODE_VERSION"
+          sudo xcode-select -s /Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer
+
+          # 設定されたXcodeバージョンを確認
+          xcodebuild -version
